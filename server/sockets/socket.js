@@ -22,6 +22,7 @@ io.on('connection', (client) => {
 
         let persona = usuarios.agregarPersona(client.id, data.nombre, sala);
         client.broadcast.to(sala).emit('updatePersonasChat', usuarios.getPersonasPorSala(sala));
+        client.broadcast.to(persona.sala).emit('newMessage', crearMensaje('Administrador', `${persona.nombre} se unió al chat`));
         callback(usuarios.getPersonasPorSala(sala));
     });
 
@@ -32,12 +33,16 @@ io.on('connection', (client) => {
         }
         client.broadcast.to(personaBorrada.sala).emit('updatePersonasChat', usuarios.getPersonasPorSala(personaBorrada.sala));
     })
-    client.on('newMessage', (data) => {
-        let persona = usuarios.getPersonas(client.id);
+    client.on('newMessage', (data, callback) => {
+        let persona = usuarios.getPersona(client.id);
         let mensaje = crearMensaje(persona.nombre, data.mensaje);
         client.broadcast.to(persona.sala).emit('newMessage', mensaje);
+        callback({
+            success: true,
+            mensaje
+        });
     });
-    // Mensajes privados
+    // Mensajes privados`'0w
     client.on('privateMessage', (data) => {
         // Falta validar que data tiene la estructura correcta: {destinatario: "id_destinatario", mensaje: "mensaje"}
         let personaFrom = usuarios.getPersona(client.id);
